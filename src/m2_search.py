@@ -113,10 +113,11 @@ class DenseSearch:
     def search(self, query: str, top_k: int = DENSE_TOP_K, collection: str = COLLECTION_NAME) -> list[SearchResult]:
         """Search using dense vectors."""
         query_vector = self._get_encoder().encode(query, normalize_embeddings=True).tolist()
-        response = self.client.query_points(collection, query=query_vector, limit=top_k)
+        # qdrant-client <1.10 (khớp server v1.9.7) chưa có query_points → dùng search()
+        hits = self.client.search(collection, query_vector=query_vector, limit=top_k)
         return [SearchResult(text=pt.payload["text"], score=pt.score,
                              metadata={k: v for k, v in pt.payload.items() if k != "text"}, method="dense")
-                for pt in response.points]
+                for pt in hits]
 
 
 def reciprocal_rank_fusion(results_list: list[list[SearchResult]], k: int = 60,
