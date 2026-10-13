@@ -101,6 +101,11 @@ def evaluate_ragas(questions: list[str], answers: list[str],
     """
     from config import OPENAI_MODEL, EMBEDDING_MODEL
     try:
+        # Windows: torch phải load DLL trước ragas/langchain/pyarrow, nếu không bge-m3 nạp lười
+        # trong worker thread của RAGAS lỗi WinError 1114 (c10.dll) → answer_relevancy NaN.
+        import torch  # noqa: F401
+        from src.m2_search import get_encoder
+        get_encoder()
         llm, embeddings = _ragas_models()
         rows = _ragas_rows(questions, answers, contexts, ground_truths, llm, embeddings)
         for attempt in range(nan_retries):
