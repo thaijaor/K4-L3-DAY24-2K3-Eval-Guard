@@ -93,8 +93,8 @@ def run_query(q: str, search, reranker, top_k: int, client=None) -> tuple[str, l
     if (OPENAI_API_KEY or client is not None) and contexts:
         try:
             if client is None:
-                from openai import OpenAI
-                client = OpenAI()
+                from config import get_llm_client
+                client = get_llm_client()
             ctx = "\n\n".join(contexts)
             resp = client.chat.completions.create(
                 model=GENERATION_MODEL,
@@ -141,8 +141,8 @@ def main(argv=None):
     from config import OPENAI_API_KEY
     client = None
     if OPENAI_API_KEY:
-        from openai import OpenAI
-        client = OpenAI()
+        from config import get_llm_client
+        client = get_llm_client()
     t_start = time.time()
 
     for i, item in enumerate(test_set):
