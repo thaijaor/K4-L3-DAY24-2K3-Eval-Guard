@@ -6,9 +6,9 @@ Repo chung: https://github.com/thaijaor/K4-L3-DAY24-2K3-Eval-Guard
 
 Trưởng nhóm/người nộp: Nguyễn Hồng Thái — 2A202602894
 
-Ngày lab/deadline áp dụng: {{Ngày giờ theo thông báo lớp}} — Asia/Ho_Chi_Minh (UTC+07:00)
+Ngày lab/deadline áp dụng: lab 13/10/2026; deadline 23:59 13/10/2026 (mặc định RULES, áp dụng điều chỉnh của coach nếu có) — Asia/Ho_Chi_Minh (UTC+07:00)
 
-Commit dùng để chấm: {{Commit SHA}}
+Commit dùng để chấm: `472e188` (merge PR #1, toàn bộ code/artifacts/reports) + commit kế tiếp chỉ điền mục này vào TEAM; SHA cuối gửi kèm link nộp
 
 Mỗi nhóm nộp một repo. Điền đủ thành viên và một mục INDIVIDUAL cho từng người.
 
@@ -49,5 +49,4 @@ Models/Qdrant/50 answers đã chuẩn bị: Qdrant `qdrant/qdrant:v1.9.7` (Docke
 
 ## Cập nhật sau khi nộp
 
-{{Ghi phiên bản nộp; nếu sửa sau deadline, ghi commit/thời điểm/lý do và thông báo
-coach cho phép áp dụng bản cập nhật. Nếu không có cập nhật, ghi rõ không có.}}
+Chưa có cập nhật sau khi nộp.
