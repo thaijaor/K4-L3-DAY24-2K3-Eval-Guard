@@ -99,7 +99,13 @@ def run_query(q: str, search, reranker, top_k: int, client=None) -> tuple[str, l
             resp = client.chat.completions.create(
                 model=GENERATION_MODEL,
                 messages=[
-                    {"role": "system", "content": "Trả lời CHỈ dựa trên context. Nếu không có → nói 'Không tìm thấy.'"},
+                    # Câu hoàn chỉnh: answer cụt ("Có.", "Không tìm thấy.") khiến RAGAS faithfulness
+                    # không tách được statement nào → NaN.
+                    {"role": "system", "content": (
+                        "Trả lời CHỈ dựa trên context, bằng 1-3 câu hoàn chỉnh: nêu rõ chủ thể, "
+                        "con số/điều kiện và phiên bản chính sách nếu context có. Không thêm thông tin ngoài context. "
+                        "Nếu context không đủ để trả lời → nói rõ 'Không tìm thấy thông tin về <nội dung câu hỏi> "
+                        "trong tài liệu được cung cấp.'")},
                     {"role": "user",   "content": f"Context:\n{ctx}\n\nCâu hỏi: {q}"},
                 ],
             )
