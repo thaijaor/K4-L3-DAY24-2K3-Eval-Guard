@@ -236,6 +236,8 @@ def run_adversarial_suite(adversarial_set: list[dict], rails=None,
                 rail_result = await check_input_rail(text, rails)
                 if not rail_result["allowed"]:
                     blocked_by = "nemo_input"
+                if type(rails).__name__ == "LLMRails":
+                    await asyncio.sleep(4.1)
 
             actual = "blocked" if blocked_by else "allowed"
             results.append({
@@ -276,11 +278,18 @@ def measure_p95_latency(test_inputs: list[str], n_runs: int = 20,
         rails = setup_nemo_rails()
 
     async def _measure():
+        is_live = type(rails).__name__ == "LLMRails"
+        if is_live:
+            # Cho phep quota RPM hoi phuc truoc khi do latency
+            await asyncio.sleep(15)
+
         # 2 warm-up calls per layer, excluded from samples
         for i in range(2):
             text = test_inputs[i % len(test_inputs)]
             pii_scan(text, analyzer, anonymizer)
             await check_input_rail(text, rails)
+            if is_live:
+                await asyncio.sleep(4.1)
 
         samples = []
         for i in range(n_runs):
@@ -300,6 +309,8 @@ def measure_p95_latency(test_inputs: list[str], n_runs: int = 20,
                 "nemo_input_ms": nemo_ms,
                 "input_guard_ms": pii_ms + nemo_ms,
             })
+            if is_live:
+                await asyncio.sleep(4.1)
         return samples
 
     samples = asyncio.run(_measure())

@@ -9,8 +9,8 @@ from nemoguardrails.llm.providers import register_llm_provider
 from config import OPENAI_API_KEY, OPENAI_BASE_URL, OPENAI_MODEL, _IS_VERTEX
 
 
-class VertexChatOpenAI(ChatOpenAI):
-    """ChatOpenAI customized for Vertex AI OpenAI-compatible endpoint with x-goog-api-key header."""
+class CustomChatOpenAI(ChatOpenAI):
+    """ChatOpenAI customized for Gemini (Vertex AI / Google AI Studio) OpenAI-compatible endpoints."""
 
     def __init__(self, **kwargs):
         if _IS_VERTEX:
@@ -26,6 +26,40 @@ class VertexChatOpenAI(ChatOpenAI):
                 kwargs.setdefault("base_url", OPENAI_BASE_URL)
         super().__init__(**kwargs)
 
+    def _get_request_payload(self, input_, *, stop=None, **kwargs):
+        payload = super()._get_request_payload(input_, stop=stop, **kwargs)
+        if "max_tokens" in payload and payload["max_tokens"] is not None and payload["max_tokens"] < 16:
+            payload["max_tokens"] = 16
+        return payload
+
+    async def _agenerate(self, messages, stop=None, run_manager=None, **kwargs):
+        import asyncio
+        for attempt in range(5):
+            try:
+                return await super()._agenerate(messages, stop=stop, run_manager=run_manager, **kwargs)
+            except Exception as e:
+                err_str = str(e).lower()
+                if ("429" in err_str or "resource_exhausted" in err_str or "quota" in err_str) and attempt < 4:
+                    wait_time = 35.0
+                    print(f"\n[RateLimit 429] Waiting {wait_time}s before retry {attempt + 1}/4...")
+                    await asyncio.sleep(wait_time)
+                else:
+                    raise
+
+    def _generate(self, messages, stop=None, run_manager=None, **kwargs):
+        import time
+        for attempt in range(5):
+            try:
+                return super()._generate(messages, stop=stop, run_manager=run_manager, **kwargs)
+            except Exception as e:
+                err_str = str(e).lower()
+                if ("429" in err_str or "resource_exhausted" in err_str or "quota" in err_str) and attempt < 4:
+                    wait_time = 35.0
+                    print(f"\n[RateLimit 429] Waiting {wait_time}s before retry {attempt + 1}/4...")
+                    time.sleep(wait_time)
+                else:
+                    raise
+
 
 def init(app):
     """Called by NeMo LLMRails during initialization."""
@@ -34,5 +68,4 @@ def init(app):
             if getattr(m, "type", None) == "main":
                 m.model = OPENAI_MODEL
 
-    if _IS_VERTEX:
-        register_llm_provider("openai", VertexChatOpenAI)
+    register_llm_provider("openai", CustomChatOpenAI)
