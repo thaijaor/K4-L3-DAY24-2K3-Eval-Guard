@@ -17,7 +17,7 @@ Mỗi nhóm nộp một repo. Điền đủ thành viên và một mục INDIVID
 | STT | Họ và tên | MSSV | Vai trò / công việc thật | Bằng chứng |
 |---|---|---|---|---|
 | 1 | Nguyễn Hồng Thái | 2A202602894 | Setup + tích hợp pipeline (m1–m5 từ Day18, `config.py`, `scripts/setup_answers.py`), sinh answers; Phase A Tasks 1–4 (`src/phase_a_ragas.py`, adapter `src/m4_eval.py`), `failure_clusters.md` | Commits 0531a7e, f051cc8, 151ba55, 3c01d22; `artifacts/answers_50q.json`, `artifacts/ragas_50q.json`, `doc/reports/failure_clusters.md` |
-| 2 | {{Họ tên}} | {{MSSV}} | {{Phase/file/hàm}} | {{Commit/PR/report}} |
+| 2 | Lê Duy Quân | 2A202602731 | Phase B (Tasks 5–8: pairwise judge, swap-and-average, Cohen kappa, bias report), Phase C (Tasks 9–12: Presidio PII, NeMo input/output rails, adversarial suite, latency), Task 13 (blueprint.md) | Commits trên nhánh quan/phase-bc, PR vào main; artifacts/judge_results.json, artifacts/guard_results.json, doc/reports/bias_report.md, doc/reports/blueprint.md |
 
 Người tích hợp/chạy batch/nộp link: Nguyễn Hồng Thái — tích hợp m1–m5, chạy setup + Phase A live, chạy `check_lab.py` và nộp link.
 
@@ -38,7 +38,14 @@ Models/Qdrant/50 answers đã chuẩn bị: Qdrant `qdrant/qdrant:v1.9.7` (Docke
 - Giới hạn/cách xử lý: lần chạy đầu RAGAS trả faithfulness NaN cho answer cụt ("Có.", "Không tìm thấy.") → không điền điểm giả, sửa prompt generation và sinh lại answers; prompt mới làm tăng từ chối ở multi_hop (12/20), đã ghi trong report kèm hướng sửa. Evaluator trùng model với generation.
 - Nguồn/AI hỗ trợ nếu có: Claude Code (Claude Opus 5.5) hỗ trợ cài môi trường, viết adapter/Phase A và nháp report; tôi kiểm tra bằng unit tests, chạy live, đối chiếu từng câu bottom 10 với `ragas_50q.json` và checker. Mã m1–m5 là bài Day18 của tôi.
 
-{{Mục INDIVIDUAL của thành viên 2 — tự điền.}}
+### LeDuyQuan-2A202602731
+
+- Phần được giao và phần thực tế đã làm: thực hiện Phase B (Tasks 5–8 trong `src/phase_b_judge.py`), Phase C (Tasks 9–12 trong `src/phase_c_guard.py` và cấu hình `guardrails/`), viết báo cáo `bias_report.md` và `blueprint.md` (Task 13). Cụ thể: cài đặt pairwise judge với JSON format và zero temperature, swap-and-average khử position bias, tính Cohen kappa so sánh với human labels, phân tích position/verbosity bias; xây dựng guard stack gồm Presidio PII tiếng Việt (lọc CCCD, SĐT, Email tránh false positive của NER tiếng Anh) và NeMo Guardrails input/output rails; chạy bộ thử nghiệm 28 ca adversarial/clean và đo latency P95 tuần tự.
+- Bằng chứng: commits trên nhánh `quan/phase-bc`, PR mở vào `main`; artifacts `artifacts/judge_results.json`, `artifacts/guard_results.json`; reports `doc/reports/bias_report.md`, `doc/reports/blueprint.md`.
+- Cách kiểm tra: chạy unit tests `pytest tests/test_phase_b.py tests/test_phase_c.py` (20/20 passed), toàn bộ offline tests `pytest tests/ -m "not integration"` (86 passed); chạy live `python scripts/run_experiments.py --phase b --live` và `python scripts/run_experiments.py --phase c --live --latency-samples 20`; kiểm tra hợp lệ tổng thể với `python scripts/check_lab.py`.
+- Điều đã học: nắm vững cơ chế position bias và verbosity bias của LLM-as-a-Judge và kỹ thuật swap-and-average để đảm bảo tính nhất quán; phương pháp hiệu chuẩn judge qua Cohen's κ; kiến trúc guardrail đa tầng (fast regex/pattern PII scan ở Layer 1 để short-circuit giảm latency, LLM semantic rail ở Layer 2) và tầm quan trọng của việc kiểm soát false positive trên clean inputs.
+- Giới hạn/cách xử lý: Presidio mặc định dùng spaCy tiếng Anh dễ nhận nhầm từ tiếng Việt thành PII làm chặn nhầm clean input — đã xử lý bằng cách lọc danh sách thực thể PII mục tiêu và ngưỡng confidence; NeMo Guardrails cần đăng ký custom provider để hỗ trợ linh hoạt cả Vertex AI và Google AI Studio.
+- Nguồn/AI hỗ trợ nếu có: Antigravity IDE (Gemini 3.8 Flash) hỗ trợ phân tích yêu cầu, hiện thực hóa các hàm scaffold và xử lý xung đột môi trường Windows; tôi trực tiếp kiểm chứng toàn bộ code qua unit test, chạy thực nghiệm live, kiểm tra artifact và đối chiếu với contract checker.
 
 ## Cập nhật sau khi nộp
 
